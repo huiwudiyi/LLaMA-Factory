@@ -35,12 +35,12 @@ class CustomSeq2SeqTrainer(Seq2SeqTrainer):
 
         Subclass and override to inject custom behavior.
         """
-        labels = inputs["labels"].detach().clone() if "labels" in inputs else None  # backup labels
+        labels = inputs["labels"].detach().clone() if "labels" in inputs else None  # backup labels 获取这个值，但是没有梯度
         if self.args.predict_with_generate:
-            assert self.tokenizer.padding_side == "left", "This method only accepts left-padded tensor."
-            prompt_len, label_len = inputs["input_ids"].size(-1), inputs["labels"].size(-1)
-            if prompt_len > label_len:
-                inputs["labels"] = self._pad_tensors_to_target_len(inputs["labels"], inputs["input_ids"])
+            assert self.tokenizer.padding_side == "left", "This method only accepts left-padded tensor." # left进行padding
+            prompt_len, label_len = inputs["input_ids"].size(-1), inputs["labels"].size(-1) #
+            if prompt_len > label_len: # 如果prompt的长度 大于label长度; 进行padding
+                inputs["labels"] = self._pad_tensors_to_target_len(inputs["labels"], inputs["input_ids"]) #
             if label_len > prompt_len:  # truncate the labels instead of padding the inputs (llama2 fp16 compatibility)
                 inputs["labels"] = inputs["labels"][:, :prompt_len]
 
@@ -58,7 +58,7 @@ class CustomSeq2SeqTrainer(Seq2SeqTrainer):
         Pads the tensor to the same length as the target tensor.
         """
         assert self.tokenizer.pad_token_id is not None, "Pad token is required."
-        padded_tensor = self.tokenizer.pad_token_id * torch.ones_like(tgt_tensor)
+        padded_tensor = self.tokenizer.pad_token_id * torch.ones_like(tgt_tensor) #
         padded_tensor[:, -src_tensor.shape[-1] :] = src_tensor  # adopt left-padding
         return padded_tensor.contiguous()  # in contiguous memory
 
