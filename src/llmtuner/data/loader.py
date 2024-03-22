@@ -119,6 +119,7 @@ def get_dataset(
     stage: Literal["pt", "sft", "rm", "ppo"],
     # split: Optional[str] = "train", # TODO: add split
 ) -> Union["Dataset", "IterableDataset"]:
+    # 这个？？？
     template = get_template_and_fix_tokenizer(tokenizer, data_args.template)
     if data_args.train_on_prompt and template.efficient_eos:
         raise ValueError("Current template does not support `train_on_prompt`.")
@@ -134,13 +135,13 @@ def get_dataset(
 
         if data_args.streaming:
             raise ValueError("Turn off `streaming` when saving dataset to disk.")
-
+    # 数据进行合并
     with training_args.main_process_first(desc="load dataset"):
         all_datasets = []
         for dataset_attr in get_dataset_list(data_args):
             all_datasets.append(load_single_dataset(dataset_attr, model_args, data_args))
         dataset = merge_dataset(all_datasets, data_args, training_args)
-
+    # 
     with training_args.main_process_first(desc="pre-process dataset"):
         preprocess_func, print_function = get_preprocess_and_print_func(
             tokenizer, template, data_args, training_args, stage
